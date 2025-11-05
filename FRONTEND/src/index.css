@@ -1,0 +1,7 @@
+/* src/index.css - For Tailwind CSS v4 */
+
+/* ⚠️ This single line replaces all three old @tailwind directives ⚠️ */
+@import "tailwindcss";
+body {
+  @apply text-black bg-white;
+}
