@@ -35,13 +35,22 @@ export const getRates = async () => {
   return res.data;
 };
 
-export const createRate = async (data) => {
-  const res = await axios.post(`${API_URL}/rates`, data, getAuthHeader());
+// ✅ Fixed: send object {itemName, rate} to backend
+export const createRate = async (itemName, rate) => {
+  const res = await axios.post(
+    `${API_URL}/rates`,
+    { itemName, rate },
+    getAuthHeader()
+  );
   return res.data;
 };
 
-export const updateRate = async (id, data) => {
-  const res = await axios.put(`${API_URL}/rates/${id}`, data, getAuthHeader());
+export const updateRate = async (id, itemName, rate) => {
+  const res = await axios.put(
+    `${API_URL}/rates/${id}`,
+    { itemName, rate },
+    getAuthHeader()
+  );
   return res.data;
 };
 

@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, X, CheckCircle, Edit3 } from "lucide-react";
-import { useRates } from "../context/RateContext";
+import { createRate, updateRate, deleteRate, getRates } from "../api";
 import { useNavigate } from "react-router-dom";
 
 const ManageRates = () => {
-  const { rates, fetchRates, addRate, updateRate, deleteRate } = useRates();
+  const [rates, setRates] = useState([]);
   const [itemName, setItemName] = useState("");
   const [rate, setRate] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [newRate, setNewRate] = useState("");
-
   const navigate = useNavigate();
 
-  // ✅ Admin-only access
+  // Admin-only access
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || user.role !== "admin") {
       alert("Access denied. Only admins can access this page.");
-      navigate("/generate-quotation"); // Redirect non-admins
+      navigate("/generate-quotation");
     } else {
       fetchRates();
     }
-  }, [fetchRates, navigate]);
+  }, [navigate]);
+
+  const fetchRates = async () => {
+    try {
+      const data = await getRates();
+      setRates(data);
+    } catch (err) {
+      setError("Failed to fetch rates.");
+    }
+  };
 
   const clearMessages = () => {
     setTimeout(() => {
@@ -32,6 +40,7 @@ const ManageRates = () => {
     }, 4000);
   };
 
+  // Add / Update
   const handleAddOrUpdate = async () => {
     if (!itemName.trim()) {
       setError("Item Name is required.");
@@ -52,14 +61,19 @@ const ManageRates = () => {
       );
 
       if (existing) {
-        await updateRate(existing._id, { itemName, rate: rateValue });
+        await updateRate(existing._id, itemName, rateValue); // Fixed
         setSuccess(`Rate for ${itemName} updated to ₹${rateValue}/sq.ft.`);
       } else {
-        await addRate(itemName, rateValue);
+        await createRate(itemName, rateValue); // Fixed
         setSuccess(`New rate for ${itemName} added successfully.`);
       }
+
+      fetchRates();
     } catch (err) {
-      setError("Error saving rate. Check backend connection or token.");
+      console.error(err);
+      setError(
+        err.response?.data?.message || "Error saving rate. Check backend or token."
+      );
     }
 
     setItemName("");
@@ -67,16 +81,19 @@ const ManageRates = () => {
     clearMessages();
   };
 
+  // Delete
   const handleDelete = async (id, name) => {
     try {
       await deleteRate(id);
       setSuccess(`Rate for ${name} deleted successfully.`);
+      fetchRates();
       clearMessages();
     } catch (err) {
       setError("Error deleting item.");
     }
   };
 
+  // Edit Save
   const handleEditSave = async (id, name) => {
     const rateValue = parseFloat(newRate);
     if (isNaN(rateValue) || rateValue <= 0) {
@@ -86,10 +103,11 @@ const ManageRates = () => {
     }
 
     try {
-      await updateRate(id, { itemName: name, rate: rateValue });
+      await updateRate(id, name, rateValue); // Fixed
       setEditingItem(null);
       setNewRate("");
       setSuccess(`Rate for ${name} updated to ₹${rateValue}/sq.ft.`);
+      fetchRates();
       clearMessages();
     } catch (err) {
       setError("Error updating rate.");
@@ -99,9 +117,8 @@ const ManageRates = () => {
   return (
     <div
       className="flex items-start justify-center min-h-screen pt-6 pb-10 overflow-y-auto bg-gray-50"
-      style={{ scrollbarWidth: "none" }} // Firefox
+      style={{ scrollbarWidth: "none" }}
     >
-      {/* Hide scrollbar for Chrome, Safari, Edge */}
       <style>
         {`
           ::-webkit-scrollbar {

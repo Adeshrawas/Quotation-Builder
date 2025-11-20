@@ -1,88 +1,54 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 const RateContext = createContext();
 
+export const useRates = () => useContext(RateContext);
+
 export const RateProvider = ({ children }) => {
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Always get latest token from localStorage
-  const getAxiosConfig = () => ({
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  });
+  const token = localStorage.getItem("token"); // JWT token from login
 
-  // Fetch all rates
   const fetchRates = async () => {
+    if (!token) {
+      setError("User not logged in");
+      setRates([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await axios.get("http://localhost:5000/api/rates", getAxiosConfig());
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/rates", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setRates(res.data);
+      setError(null);
     } catch (err) {
       console.error("Error fetching rates:", err);
+      if (err.response && err.response.status === 403) {
+        setError("Access denied. Please log in again.");
+      } else {
+        setError("Failed to fetch rates");
+      }
+      setRates([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new rate
-  const addRate = async (itemName, rate) => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/rates",
-        { itemName, rate },
-        getAxiosConfig()
-      );
-      setRates((prev) => [...prev, res.data]);
-    } catch (err) {
-      console.error("Error adding rate:", err);
-    }
-  };
-
-  // Update rate
-  const updateRate = async (id, updatedRate) => {
-    try {
-      const res = await axios.put(
-        `http://localhost:5000/api/rates/${id}`,
-        updatedRate,
-        getAxiosConfig()
-      );
-      setRates((prev) => prev.map((r) => (r._id === id ? res.data : r)));
-    } catch (err) {
-      console.error("Error updating rate:", err);
-    }
-  };
-
-  // Delete rate
-  const deleteRate = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/rates/${id}`, getAxiosConfig());
-      setRates((prev) => prev.filter((r) => r._id !== id));
-    } catch (err) {
-      console.error("Error deleting rate:", err);
-    }
-  };
-
   useEffect(() => {
-    if (localStorage.getItem("token")) fetchRates();
+    fetchRates();
   }, []);
 
   return (
-    <RateContext.Provider
-      value={{
-        rates,
-        setRates,
-        loading,
-        fetchRates,
-        addRate,
-        updateRate,
-        deleteRate,
-      }}
-    >
-      {children} 
+    <RateContext.Provider value={{ rates, loading, error, fetchRates }}>
+      {children}
     </RateContext.Provider>
   );
 };
-
-export const useRates = () => useContext(RateContext);

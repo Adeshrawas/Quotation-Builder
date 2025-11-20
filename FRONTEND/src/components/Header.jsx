@@ -24,6 +24,10 @@ const Header = () => {
     navItems.push({ name: "Admin", path: "/admin", icon: Settings });
   }
 
+  // 🔥 FIXED — show name instead of email
+  const displayName =
+    user?.name || user?.email?.split("@")[0] || "User";
+
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-md">
       <div className="container flex items-center justify-between px-6 py-3 mx-auto">
@@ -53,7 +57,7 @@ const Header = () => {
             <span className="flex items-center px-3 py-2 font-medium text-gray-600 rounded-lg bg-gray-50">
               Welcome{" "}
               <span className="ml-1 text-indigo-600">
-                {user?.email?.split("@")[0] || "User"}
+                {displayName}
               </span>
             </span>
 

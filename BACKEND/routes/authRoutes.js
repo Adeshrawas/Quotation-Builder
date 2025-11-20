@@ -2,50 +2,54 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { verifyToken } from "../middleware/authMiddleware.js"; 
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // ==========================================================
-// REGISTER ROUTE
+// REGISTER
 // ==========================================================
 router.post("/register", async (req, res) => {
-  const { email, password, role } = req.body;
+  const { name, phoneNo, phone, email, password, role, adminKey } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "Please provide both email and password." });
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Name, email, and password are required." });
   }
 
   try {
-    // Check if user already exists
-    let user = await User.findOne({ email: email.toLowerCase() });
+    // normalization
+    const emailLower = email.toLowerCase();
+
+    let user = await User.findOne({ email: emailLower });
     if (user) {
       return res.status(400).json({ message: "User already exists." });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Safe role assignment
-    let userRole = "user"; // default role
+    // default role is user. Allow admin creation only with adminKey
+    let userRole = "user";
     if (role === "admin") {
-      // Only allow admin creation if secret admin key provided (optional for security)
-      if (req.body.adminKey === process.env.ADMIN_KEY) {
+      if (adminKey === process.env.ADMIN_KEY) {
         userRole = "admin";
+      } else {
+        return res.status(403).json({ message: "Invalid admin key." });
       }
     }
 
-    // Create user
-    user = new User({ 
-      email: email.toLowerCase(),
+    const newUser = new User({
+      name,
+      phoneNo: phoneNo || phone || "",
+      email: emailLower,
       password: hashedPassword,
       role: userRole,
-      isLoggedIn: false
+      isLoggedIn: false,
+      adminId: userRole === "admin" ? null : null, // admin users have null adminId
     });
 
-    await user.save();
-    res.status(201).json({ message: "User registered successfully. Please log in." });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully. Please log in.", user: { id: newUser._id, email: newUser.email, role: newUser.role } });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ message: "Server error during registration." });
@@ -53,7 +57,7 @@ router.post("/register", async (req, res) => {
 });
 
 // ==========================================================
-// LOGIN ROUTE
+// LOGIN
 // ==========================================================
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -76,7 +80,11 @@ router.post("/login", async (req, res) => {
     user.isLoggedIn = true;
     await user.save();
 
-    res.json({ token, user: { id: user._id, email: user.email, role: user.role } });
+    // include adminId when returning user (frontend may use it)
+    res.json({
+      token,
+      user: { id: user._id, email: user.email, role: user.role, name: user.name, adminId: user.adminId },
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error during login." });
@@ -84,7 +92,7 @@ router.post("/login", async (req, res) => {
 });
 
 // ==========================================================
-// LOGOUT ROUTE
+// LOGOUT
 // ==========================================================
 router.post("/logout", verifyToken, async (req, res) => {
   try {
