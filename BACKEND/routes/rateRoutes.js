@@ -4,77 +4,92 @@ import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* ------------------ CREATE RATE ----------------------- */
+/**
+ * CREATE RATE (Admin only)
+ */
 router.post("/", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { itemName, rate } = req.body;
+    let { itemName, rate } = req.body;
 
-    if (!itemName || rate === undefined) {
+    if (!itemName || rate === undefined || rate === "")
       return res.status(400).json({ message: "Item name and rate required" });
-    }
+
+    const numRate = Number(rate);
+    if (isNaN(numRate))
+      return res.status(400).json({ message: "Rate must be numeric" });
 
     const newRate = new Rate({
-      adminId: req.user._id,   // ⭐ CORRECT OWNER FIELD
-      itemName,
-      rate,
+      itemName: itemName.trim(),
+      rate: numRate,
+      adminId: req.user._id,
     });
 
     await newRate.save();
-
     res.status(201).json(newRate);
-  } catch (error) {
-    console.log("Create rate error:", error);
-    res.status(500).json({ message: "Create rate failed" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ------------------ GET RATES ------------------------- */
-router.get("/", verifyToken, verifyAdmin, async (req, res) => {
+/**
+ * GET RATES (Admin AND User)
+ * ⭐ FIX: User now gets their admin's rates properly
+ */
+router.get("/", verifyToken, async (req, res) => {
   try {
-    const rates = await Rate.find({ adminId: req.user._id });
+    let adminId;
+
+    if (req.user.role === "admin") {
+      adminId = req.user._id;
+    } else {
+      adminId = req.user.adminId; // User belongs to this admin
+    }
+
+    if (!adminId) {
+      return res.status(400).json({ message: "Admin not assigned to this user." });
+    }
+
+    const rates = await Rate.find({ adminId }).sort({ itemName: 1 });
     res.json(rates);
-  } catch (error) {
-    console.log("Fetch rates error:", error);
-    res.status(500).json({ message: "Fetch rates failed" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ------------------ UPDATE RATE ----------------------- */
+/**
+ * UPDATE RATE (Admin only)
+ */
 router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const rate = await Rate.findOne({
-      _id: req.params.id,
-      adminId: req.user._id, // ⭐ ensure only admin edits his rates
-    });
+    const updated = await Rate.findOneAndUpdate(
+      { _id: req.params.id, adminId: req.user._id },
+      req.body,
+      { new: true }
+    );
 
-    if (!rate) return res.status(404).json({ message: "Rate not found" });
+    if (!updated) return res.status(404).json({ message: "Rate not found" });
 
-    rate.itemName = req.body.itemName;
-    rate.rate = req.body.rate;
-
-    await rate.save();
-    res.json(rate);
-  } catch (error) {
-    console.log("Update rate error:", error);
-    res.status(500).json({ message: "Update rate failed" });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-/* ------------------ DELETE RATE ----------------------- */
+/**
+ * DELETE RATE (Admin only)
+ */
 router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const rate = await Rate.findOne({
+    const deleted = await Rate.findOneAndDelete({
       _id: req.params.id,
-      adminId: req.user._id, // ⭐ ensure only admin deletes his rates
+      adminId: req.user._id,
     });
 
-    if (!rate) return res.status(404).json({ message: "Rate not found" });
+    if (!deleted) return res.status(404).json({ message: "Rate not found" });
 
-    await rate.deleteOne();
-    res.json({ message: "Rate deleted successfully" });
-  } catch (error) {
-    console.log("Delete rate error:", error);
-    res.status(500).json({ message: "Delete rate failed" });
+    res.json({ message: "Rate deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 

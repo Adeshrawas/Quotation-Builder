@@ -6,104 +6,98 @@ import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// 1️⃣ Get all users (only users created by this admin)
+// GET USERS (Admin-only)
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const users = await User.find(
       { adminId: req.user._id },
-      "name phoneNo email role isLoggedIn createdAt updatedAt"
+      "name phoneNo email role isLoggedIn createdAt"
     ).sort({ createdAt: -1 });
+
     res.json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
+  } catch {
     res.status(500).json({ message: "Error fetching users" });
   }
 });
 
-// 2️⃣ Get total users (only this admin's users)
+// COUNT USERS
 router.get("/users/count", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ adminId: req.user._id });
     res.json({ totalUsers });
-  } catch (error) {
-    console.error("Error fetching user count:", error);
+  } catch {
     res.status(500).json({ message: "Error fetching user count" });
   }
 });
 
-// 3️⃣ Get items (rates) for a user - returns rates owned by this admin
-// Frontend calls /user/:userId/items — we'll honor it but only return admin's rates.
-router.get("/user/:userId/items", verifyToken, verifyAdmin, async (req, res) => {
+// USER ITEMS → return admin's rates
+router.get("/user/:id/items", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    // We ignore the userId for access control and return rates for this admin.
-    const rates = await Rate.find({ adminId: req.user._id }).select("_id itemName rate");
-    const formatted = rates.map((i) => ({
-      _id: i._id,
-      item: i.itemName,
-      rate: i.rate,
-    }));
-    res.json(formatted);
-  } catch (err) {
-    console.error("Error fetching user items:", err);
-    res.status(500).json({ message: "Error fetching user items" });
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.adminId.equals(req.user._id)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const rates = await Rate.find({ adminId: req.user._id });
+    res.json(rates);
+  } catch {
+    res.status(500).json({ message: "Error fetching items" });
   }
 });
 
-// 4️⃣ Add new user (Admin only) - user will be bound to adminId
+// ADD USER
 router.post("/add-user", verifyToken, verifyAdmin, async (req, res) => {
-  const { name, phoneNo, phone, email, password, role } = req.body;
+  const { name, email, password, phoneNo, phone, role } = req.body;
 
-  if (!name || !email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Name, email, and password are required." });
-  }
+  if (!name || !email || !password)
+    return res.status(400).json({ message: "Name, email & password required." });
 
   try {
-    const emailLower = email.toLowerCase();
-    const existingUser = await User.findOne({ email: emailLower });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
+    const exist = await User.findOne({ email: email.toLowerCase() });
+    if (exist) return res.status(400).json({ message: "Email already exists." });
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const finalPhone = phoneNo || phone || "";
+
+    if (finalPhone && !/^\d{10}$/.test(finalPhone)) {
+      return res.status(400).json({ message: "Phone must be 10 digits." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = new User({
+    const user = new User({
       name,
-      phoneNo: phoneNo || phone || "",
-      email: emailLower,
-      password: hashedPassword,
+      email: email.toLowerCase(),
+      phoneNo: finalPhone,
+      password: hashed,
       role: role || "user",
-      adminId: req.user._id, // ⭐ bind this new user to the admin
+      adminId: req.user._id,
     });
 
-    await newUser.save();
-    res.status(201).json({ message: "User added successfully.", user: newUser });
-  } catch (error) {
-    console.error("Error adding user:", error);
-    res.status(500).json({ message: "Error adding user." });
+    await user.save();
+    res.status(201).json({ message: "User added successfully." });
+  } catch {
+    res.status(500).json({ message: "Error adding user" });
   }
 });
 
-// 5️⃣ DELETE USER (Admin only) - only delete users that belong to this admin
+// DELETE USER
 router.delete("/delete-user/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
+    const user = await User.findById(req.params.id);
 
-    const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    if (!user.adminId || !user.adminId.equals(req.user._id)) {
-      return res.status(403).json({ message: "Access denied. You can only delete your users." });
-    }
+    if (!user.adminId.equals(req.user._id))
+      return res.status(403).json({ message: "Access denied." });
 
-    await User.findByIdAndDelete(id);
+    await User.findByIdAndDelete(user._id);
 
     res.json({ message: "User deleted successfully." });
-  } catch (error) {
-    console.error("Delete user error:", error);
-    res.status(500).json({ message: "Delete user failed." });
+  } catch {
+    res.status(500).json({ message: "Delete failed" });
   }
 });
 

@@ -3,22 +3,34 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 const QuoteContext = createContext();
 
 export const QuoteProvider = ({ children }) => {
+  // Get logged-in user
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?.id || user?._id || "guest";
+
+  const STORAGE_KEY = `quoteItems_${userId}`;
+
+  // Load user-specific items
   const [quoteItems, setQuoteItems] = useState(() => {
-    // ✅ Initialize from localStorage
-    const saved = localStorage.getItem("quoteItems");
+    const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
   });
 
-  // ✅ Persist to localStorage whenever quoteItems change
+  // ** FIX: When login user changes, load THEIR items only **
   useEffect(() => {
-    localStorage.setItem("quoteItems", JSON.stringify(quoteItems));
-  }, [quoteItems]);
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    setQuoteItems(saved);
+  }, [userId]);
 
-  const addItem = (item) => setQuoteItems([...quoteItems, item]);
+  // Auto-save for this specific user
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(quoteItems));
+  }, [quoteItems, STORAGE_KEY]);
+
+  const addItem = (item) => setQuoteItems((prev) => [...prev, item]);
 
   const resetQuote = () => {
     setQuoteItems([]);
-    localStorage.removeItem("quoteItems");
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
@@ -28,5 +40,4 @@ export const QuoteProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook to use context easily
 export const useQuote = () => useContext(QuoteContext);

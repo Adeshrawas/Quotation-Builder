@@ -25,8 +25,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    // ⭐ Who is the admin that owns this user (data isolation)
+    // Every user belongs to an admin
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+
+    // Admin logo URL (served from /uploads/admin-logos/...)
+    logoUrl: { type: String, default: null },
   },
   { timestamps: true }
 );
