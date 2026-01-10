@@ -4,61 +4,41 @@ import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/**
- * CREATE RATE (Admin only)
- */
+// CREATE
 router.post("/", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    let { itemName, rate } = req.body;
+    const { itemName, rate } = req.body;
+    const num = Number(rate);
 
-    if (!itemName || rate === undefined || rate === "")
-      return res.status(400).json({ message: "Item name and rate required" });
-
-    const numRate = Number(rate);
-    if (isNaN(numRate))
-      return res.status(400).json({ message: "Rate must be numeric" });
+    if (!itemName || isNaN(num))
+      return res.status(400).json({ message: "Invalid data" });
 
     const newRate = new Rate({
       itemName: itemName.trim(),
-      rate: numRate,
+      rate: num,
       adminId: req.user._id,
     });
 
     await newRate.save();
-    res.status(201).json(newRate);
-  } catch (err) {
+    res.json(newRate);
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/**
- * GET RATES (Admin AND User)
- * ⭐ FIX: User now gets their admin's rates properly
- */
+// GET
 router.get("/", verifyToken, async (req, res) => {
   try {
-    let adminId;
+    const adminId = req.user.role === "admin" ? req.user._id : req.user.adminId;
 
-    if (req.user.role === "admin") {
-      adminId = req.user._id;
-    } else {
-      adminId = req.user.adminId; // User belongs to this admin
-    }
-
-    if (!adminId) {
-      return res.status(400).json({ message: "Admin not assigned to this user." });
-    }
-
-    const rates = await Rate.find({ adminId }).sort({ itemName: 1 });
+    const rates = await Rate.find({ adminId });
     res.json(rates);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/**
- * UPDATE RATE (Admin only)
- */
+// UPDATE
 router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
     const updated = await Rate.findOneAndUpdate(
@@ -67,28 +47,22 @@ router.put("/:id", verifyToken, verifyAdmin, async (req, res) => {
       { new: true }
     );
 
-    if (!updated) return res.status(404).json({ message: "Rate not found" });
-
     res.json(updated);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-/**
- * DELETE RATE (Admin only)
- */
+// DELETE
 router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const deleted = await Rate.findOneAndDelete({
+    await Rate.findOneAndDelete({
       _id: req.params.id,
       adminId: req.user._id,
     });
 
-    if (!deleted) return res.status(404).json({ message: "Rate not found" });
-
-    res.json({ message: "Rate deleted" });
-  } catch (err) {
+    res.json({ message: "Deleted" });
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });

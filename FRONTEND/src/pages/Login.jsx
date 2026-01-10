@@ -30,11 +30,8 @@ const Login = () => {
       setNotify({ type: "success", message: "Login successful!" });
 
       setTimeout(() => {
-        if (user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/generate-quotation");
-        }
+        if (user.role === "admin") navigate("/admin");
+        else navigate("/generate-quotation");
       }, 800);
     } catch (err) {
       setNotify({ type: "error", message: err.response?.data?.message || "Login failed" });
@@ -44,16 +41,19 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen px-6 bg-gradient-to-br from-blue-50 via-white to-blue-100">
       {notify && (
-        <Notify
-          type={notify.type}
-          message={notify.message}
-          onClose={() => setNotify(null)}
-        />
+        <Notify type={notify.type} message={notify.message} onClose={() => setNotify(null)} />
       )}
 
       <div className="relative w-full max-w-md p-10 overflow-hidden bg-white shadow-2xl rounded-3xl">
         <div className="absolute w-56 h-56 rounded-full -top-16 -right-16 bg-gradient-to-tr from-blue-400 to-indigo-500 opacity-20 blur-3xl"></div>
         <div className="absolute w-56 h-56 rounded-full -bottom-16 -left-16 bg-gradient-to-bl from-indigo-400 to-blue-500 opacity-20 blur-3xl"></div>
+
+        <button
+          onClick={() => navigate("/")}
+          className="px-4 py-2 mb-6 text-indigo-600 transition-all border border-indigo-600 rounded-xl hover:bg-indigo-50 hover:scale-105"
+        >
+          ← Back
+        </button>
 
         <form onSubmit={handleSubmit}>
           <h2 className="mb-6 text-3xl font-extrabold text-center text-indigo-700">Login</h2>
@@ -63,7 +63,7 @@ const Login = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 mb-4 text-gray-800 placeholder-gray-400 transition-all duration-200 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full p-3 mb-4 text-gray-800 placeholder-gray-400 transition-all duration-200 bg-white border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           />
 
@@ -72,9 +72,18 @@ const Login = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 mb-6 text-gray-800 placeholder-gray-400 transition-all duration-200 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full p-3 mb-2 text-gray-800 placeholder-gray-400 transition-all duration-200 bg-white border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             required
           />
+
+          {/* ⭐⭐⭐ UPDATED FORGOT PASSWORD BUTTON — SAME STYLE AS OTHER BUTTONS ⭐⭐⭐ */}
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="px-4 py-2 mb-5 text-indigo-600 transition-all border border-indigo-600 rounded-xl hover:bg-indigo-50 hover:scale-105"
+          >
+            Forgot Password?
+          </button>
 
           <button
             type="submit"
@@ -83,6 +92,16 @@ const Login = () => {
             Login
           </button>
         </form>
+
+        {/* 🔥 FIX BLUE BACKGROUND ON AUTOFILL */}
+        <style>{`
+          input:-webkit-autofill {
+            background-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+            box-shadow: 0 0 0 1000px #ffffff inset !important;
+            color: #000 !important;
+          }
+        `}</style>
       </div>
     </div>
   );

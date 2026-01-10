@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, X, CheckCircle, Edit3 } from "lucide-react";
-import { createRate, updateRate, deleteRate, getRates } from "../api";
+import { createRate, updateRate, deleteRate } from "../api";
 import { useNavigate } from "react-router-dom";
+import { useRates } from "../context/RateContext"; // ⭐ ADDED
 
 const ManageRates = () => {
-  const [rates, setRates] = useState([]);
+  const { rates, fetchRates } = useRates(); // ⭐ GET GLOBAL fetchRates
   const [itemName, setItemName] = useState("");
   const [rate, setRate] = useState("");
   const [error, setError] = useState(null);
@@ -20,18 +21,9 @@ const ManageRates = () => {
       alert("Access denied. Only admins can access this page.");
       navigate("/generate-quotation");
     } else {
-      fetchRates();
+      fetchRates(); // ⭐ Load rates globally
     }
   }, [navigate]);
-
-  const fetchRates = async () => {
-    try {
-      const data = await getRates();
-      setRates(data);
-    } catch (err) {
-      setError("Failed to fetch rates.");
-    }
-  };
 
   const clearMessages = () => {
     setTimeout(() => {
@@ -61,18 +53,19 @@ const ManageRates = () => {
       );
 
       if (existing) {
-        await updateRate(existing._id, itemName, rateValue); // Fixed
+        await updateRate(existing._id, itemName, rateValue);
         setSuccess(`Rate for ${itemName} updated to ₹${rateValue}/sq.ft.`);
       } else {
-        await createRate(itemName, rateValue); // Fixed
+        await createRate(itemName, rateValue);
         setSuccess(`New rate for ${itemName} added successfully.`);
       }
 
-      fetchRates();
+      await fetchRates(); // ⭐ IMPORTANT: Refresh for all pages
     } catch (err) {
       console.error(err);
       setError(
-        err.response?.data?.message || "Error saving rate. Check backend or token."
+        err.response?.data?.message ||
+          "Error saving rate. Check backend or token."
       );
     }
 
@@ -86,7 +79,7 @@ const ManageRates = () => {
     try {
       await deleteRate(id);
       setSuccess(`Rate for ${name} deleted successfully.`);
-      fetchRates();
+      await fetchRates(); // ⭐ REFRESH CONTEXT
       clearMessages();
     } catch (err) {
       setError("Error deleting item.");
@@ -103,11 +96,11 @@ const ManageRates = () => {
     }
 
     try {
-      await updateRate(id, name, rateValue); // Fixed
+      await updateRate(id, name, rateValue);
       setEditingItem(null);
       setNewRate("");
       setSuccess(`Rate for ${name} updated to ₹${rateValue}/sq.ft.`);
-      fetchRates();
+      await fetchRates(); // ⭐ REFRESH
       clearMessages();
     } catch (err) {
       setError("Error updating rate.");
@@ -134,16 +127,18 @@ const ManageRates = () => {
           <span className="font-medium text-gray-700">₹ per sq.ft.</span>
         </p>
 
-        {/* Success/Error Notifications */}
         {(success || error) && (
           <div
             className={`fixed top-6 right-6 z-50 p-4 rounded-lg shadow-lg transition-opacity duration-300 ${
               success ? "bg-green-500 text-white" : "bg-red-500 text-white"
             }`}
-            role="alert"
           >
             <div className="flex items-center">
-              {success ? <CheckCircle className="w-6 h-6 mr-2" /> : <X className="w-6 h-6 mr-2" />}
+              {success ? (
+                <CheckCircle className="w-6 h-6 mr-2" />
+              ) : (
+                <X className="w-6 h-6 mr-2" />
+              )}
               <p className="font-medium">{success || error}</p>
               <button
                 onClick={() => {
@@ -159,15 +154,17 @@ const ManageRates = () => {
         )}
 
         {/* Add/Update Section */}
-        <div className="p-6 mt-6 transition-shadow duration-300 bg-white border-2 border-indigo-100 rounded-3xl hover:shadow-2xl">
-          <h2 className="text-2xl font-semibold text-indigo-700">+ Add / Update Item Rate</h2>
+        <div className="p-6 mt-6 bg-white border-2 border-indigo-100 rounded-3xl hover:shadow-2xl">
+          <h2 className="text-2xl font-semibold text-indigo-700">
+            + Add / Update Item Rate
+          </h2>
           <div className="flex flex-wrap items-center mt-4 space-x-4">
             <input
               type="text"
               placeholder="e.g., Painting, POP, Tiling"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              className="flex-1 px-5 py-2 text-lg text-gray-800 transition border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 px-5 py-2 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
               type="number"
@@ -175,11 +172,11 @@ const ManageRates = () => {
               placeholder="0.00"
               value={rate}
               onChange={(e) => setRate(e.target.value)}
-              className="w-48 px-5 py-2 text-lg text-gray-800 transition border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-48 px-5 py-2 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <button
               onClick={handleAddOrUpdate}
-              className="px-8 py-2 text-lg font-semibold text-white bg-blue-600 rounded-xl shadow-md hover:bg-blue-700 hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="px-8 py-2 text-lg font-semibold text-white bg-blue-600 shadow-md rounded-xl hover:bg-blue-700"
             >
               Save
             </button>
@@ -187,8 +184,11 @@ const ManageRates = () => {
         </div>
 
         {/* Rates List Section */}
-        <div className="p-6 mt-6 transition-shadow duration-300 border-2 border-indigo-100 bg-indigo-50 rounded-3xl hover:shadow-2xl">
-          <h2 className="mb-4 text-2xl font-semibold text-indigo-700">Edit or Delete Rates</h2>
+        <div className="p-6 mt-6 border-2 border-indigo-100 bg-indigo-50 rounded-3xl hover:shadow-2xl">
+          <h2 className="mb-4 text-2xl font-semibold text-indigo-700">
+            Edit or Delete Rates
+          </h2>
+
           {rates.length > 0 && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {rates.map((item) => (
@@ -198,12 +198,14 @@ const ManageRates = () => {
                 >
                   <button
                     onClick={() => handleDelete(item._id, item.itemName)}
-                    className="absolute p-1 text-red-500 transition rounded-full top-2 right-2 hover:text-red-600 hover:bg-red-50"
+                    className="absolute p-1 text-red-500 rounded-full top-2 right-2 hover:bg-red-50"
                   >
                     <Trash2 size={20} />
                   </button>
 
-                  <h4 className="text-xl font-semibold text-indigo-700">{item.itemName}</h4>
+                  <h4 className="text-xl font-semibold text-indigo-700">
+                    {item.itemName}
+                  </h4>
                   <p className="mt-1 text-sm text-gray-500">Rate (₹/sq.ft)</p>
 
                   {editingItem === item._id ? (
@@ -213,17 +215,17 @@ const ManageRates = () => {
                         step="0.01"
                         value={newRate}
                         onChange={(e) => setNewRate(e.target.value)}
-                        className="w-24 px-3 py-1 text-lg font-bold text-gray-900 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-24 px-3 py-1 text-lg font-bold border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
                       />
                       <button
                         onClick={() => handleEditSave(item._id, item.itemName)}
-                        className="px-3 py-1 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
+                        className="px-3 py-1 text-sm font-semibold text-white bg-green-600 rounded-lg"
                       >
                         Save
                       </button>
                       <button
                         onClick={() => setEditingItem(null)}
-                        className="px-3 py-1 text-sm font-semibold text-white bg-gray-400 rounded-lg hover:bg-gray-500"
+                        className="px-3 py-1 text-sm font-semibold text-white bg-gray-400 rounded-lg"
                       >
                         Cancel
                       </button>
@@ -231,14 +233,14 @@ const ManageRates = () => {
                   ) : (
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-lg font-bold text-gray-900">
-                        ₹{item.rate ? item.rate.toFixed(2) : "0.00"}
+                        ₹{item.rate.toFixed(2)}
                       </span>
                       <button
                         onClick={() => {
                           setEditingItem(item._id);
                           setNewRate(item.rate);
                         }}
-                        className="flex items-center px-2 py-1 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                        className="flex items-center px-2 py-1 text-sm font-semibold text-white bg-blue-600 rounded-lg"
                       >
                         <Edit3 size={14} className="mr-1" /> Edit
                       </button>

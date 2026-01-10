@@ -20,6 +20,13 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+
+    // 🔥 NEW: email verification flag
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
     isLoggedIn: {
       type: Boolean,
       default: false,

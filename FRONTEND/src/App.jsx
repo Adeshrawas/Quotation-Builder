@@ -12,18 +12,30 @@ import Logout from "./pages/Logout";
 import { RateProvider } from "./context/RateContext";
 import { QuoteProvider } from "./context/QuoteContext";
 
-import Notify from "./components/Notification";   // ⭐ NEW
+import Notify from "./components/Notification";
 
 import React, { useState } from "react";
 
-// Helper function to safely get user role from localStorage
+import EditUser from "./pages/EditUser";
+
+// ⭐ NEW MESSAGE PAGE
+import AdminMessages from "./pages/AdminMessages";
+
+// ⭐⭐ FORGOT PASSWORD SYSTEM PAGES
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOtp from "./pages/VerifyOtp";
+import ResetPassword from "./pages/ResetPassword";
+
+// ⭐⭐ EMAIL VERIFICATION PAGE (NEW)
+import VerifyEmail from "./pages/VerifyEmail";
+
+// Read role safely
 const getRole = () => {
   try {
     const user = localStorage.getItem("user");
     if (user) return JSON.parse(user).role;
     return null;
-  } catch (e) {
-    console.error("Error parsing user role from localStorage", e);
+  } catch {
     return null;
   }
 };
@@ -31,7 +43,6 @@ const getRole = () => {
 function App() {
   const [notify, setNotify] = useState(null);
 
-  // PrivateRoute for auth & role
   const PrivateRoute = ({ children, requiredRole }) => {
     const token = localStorage.getItem("token");
     const userRole = getRole();
@@ -39,14 +50,16 @@ function App() {
     if (!token) return <Navigate to="/login" replace />;
 
     if (requiredRole && userRole !== requiredRole) {
-      setNotify({ type: "error", message: "Access Denied: You do not have the required permissions." }); // ⭐ Replaced alert
+      setNotify({
+        type: "error",
+        message: "Access Denied: You do not have permission.",
+      });
       return <Navigate to="/" replace />;
     }
 
     return children;
   };
 
-  // Layout wrapper for pages that need Header
   const WithHeader = ({ children }) => (
     <div>
       <Header />
@@ -57,8 +70,6 @@ function App() {
   return (
     <RateProvider>
       <QuoteProvider>
-
-        {/* ⭐ Notification display */}
         {notify && (
           <Notify
             type={notify.type}
@@ -69,10 +80,22 @@ function App() {
 
         <Router>
           <Routes>
-            {/* Pages without Header */}
+
+            {/* Public */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<Logout />} />
+
+            {/* ⭐⭐ EMAIL VERIFICATION ROUTE (UPDATED) */}
+            <Route path="/verify-email/:userId/:choice" element={<VerifyEmail />} />
+
+            {/* ⭐⭐ FORGOT PASSWORD ROUTES */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Admin Add User */}
             <Route
               path="/admin/add-user"
               element={
@@ -81,9 +104,8 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route path="/logout" element={<Logout />} />
 
-            {/* Pages with Header */}
+            {/* Admin Panel */}
             <Route
               path="/admin"
               element={
@@ -94,6 +116,32 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Edit User */}
+            <Route
+              path="/admin/edit/:id"
+              element={
+                <PrivateRoute requiredRole="admin">
+                  <WithHeader>
+                    <EditUser />
+                  </WithHeader>
+                </PrivateRoute>
+              }
+            />
+
+            {/* ⭐ NEW ADMIN MESSAGES PAGE */}
+            <Route
+              path="/admin/messages"
+              element={
+                <PrivateRoute requiredRole="admin">
+                  <WithHeader>
+                    <AdminMessages />
+                  </WithHeader>
+                </PrivateRoute>
+              }
+            />
+
+            {/* Quotation Page */}
             <Route
               path="/generate-quotation"
               element={
@@ -104,16 +152,19 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            {/* Manage Rates */}
             <Route
               path="/manage-rates"
               element={
-                <PrivateRoute>
+                <PrivateRoute requiredRole="admin">
                   <WithHeader>
                     <ManageRates />
                   </WithHeader>
                 </PrivateRoute>
               }
             />
+
           </Routes>
         </Router>
       </QuoteProvider>
