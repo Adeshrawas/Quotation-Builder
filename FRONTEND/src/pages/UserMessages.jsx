@@ -81,8 +81,8 @@ const UserMessages = () => {
                   <p className="leading-relaxed text-gray-600">{msg.message}</p>
 
                   {msg.reply && (
-                    <div className="relative p-5 mt-6 border-l-4 border-[#06d6a0] bg-gray-50 rounded-r-2xl">
-                      <div className="absolute top-0 left-0 w-2 h-2 bg-[#06d6a0] rounded-full -translate-x-1.5 -translate-y-1"></div>
+                    <div className="relative p-5 mt-6 border-l-4 border-teal-800 bg-gray-50 rounded-r-2xl">
+                      <div className="absolute top-0 left-0 w-2 h-2 bg-teal-800 rounded-full -translate-x-1.5 -translate-y-1"></div>
                       <p className="mb-1 text-sm font-black tracking-tight text-teal-900 uppercase">
                         Admin Response
                       </p>

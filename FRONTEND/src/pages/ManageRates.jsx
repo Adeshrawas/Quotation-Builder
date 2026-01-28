@@ -165,7 +165,7 @@ const ManageRates = () => {
                 placeholder="Enter item name..."
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
-                className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#06d6a0] outline-none"
+                className="p-3 border border-gray-200 outline-none rounded-xl focus:ring-2 focus:ring-teal-800"
               />
             </div>
 
@@ -177,7 +177,7 @@ const ManageRates = () => {
                 step="0.01"
                 value={rate}
                 onChange={(e) => setRate(e.target.value)}
-                className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#06d6a0] outline-none"
+                className="p-3 border border-gray-200 outline-none rounded-xl focus:ring-2 focus:ring-teal-800"
               />
             </div>
           </div>
@@ -202,7 +202,7 @@ const ManageRates = () => {
                 }
               }}
               rows={2}
-              className="w-full p-3 border border-gray-200 resize-none rounded-xl focus:ring-2 focus:ring-[#06d6a0] outline-none"
+              className="w-full p-3 border border-gray-200 outline-none resize-none rounded-xl focus:ring-2 focus:ring-teal-800"
             />
           </div>
 
@@ -271,11 +271,11 @@ const ManageRates = () => {
                     type="number"
                     value={newRate}
                     onChange={(e) => setNewRate(e.target.value)}
-                    className="w-24 p-2 border border-teal-200 rounded-lg outline-none focus:ring-2 focus:ring-[#06d6a0]"
+                    className="w-24 p-2 border border-teal-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-800"
                   />
                   <button
                     onClick={() => handleEditSave(item._id, item.itemName)}
-                    className="px-3 py-1 font-bold text-white bg-[#06d6a0] rounded-lg hover:bg-[#05bc8c]"
+                    className="px-3 py-1 font-bold text-white bg-teal-900 rounded-lg hover:bg-teal-800"
                   >
                     Save
                   </button>
@@ -288,7 +288,7 @@ const ManageRates = () => {
                 </div>
               ) : (
                 <div className="flex items-center justify-between mt-6">
-                  <span className="text-xl font-black text-[#06d6a0]">₹{item.rate}</span>
+                  <span className="text-xl font-black text-teal-600">₹{item.rate}</span>
                   <button
                     onClick={() => {
                       setEditingItem(item._id);

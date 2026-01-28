@@ -154,7 +154,7 @@ const AdminQuotationNotifications = () => {
                             {isUnread ? (
                               <button
                                 onClick={() => markAsRead(n._id)}
-                                /* FIXED: Using requested bg-[#06d6a0] and hover:bg-[#05bc8c] */
+                                
                                 className="inline-flex items-center gap-2 px-4 py-2 text-xs font-black text-white transition-all bg-teal-900 shadow-sm rounded-xl hover:bg-teal-800 active:scale-95"
                               >
                                 <CheckCircle size={14} />

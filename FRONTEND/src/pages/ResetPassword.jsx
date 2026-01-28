@@ -60,7 +60,7 @@ const ResetPassword = () => {
             placeholder="Enter new password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+            className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-800"
           />
           <button
             type="button"

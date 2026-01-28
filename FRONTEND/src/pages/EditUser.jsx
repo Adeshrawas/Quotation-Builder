@@ -148,7 +148,7 @@ const EditUser = () => {
               <select
                 value={userData.countryCode}
                 onChange={(e) => setUserData({ ...userData, countryCode: e.target.value })}
-                className="w-[40%] p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#06d6a0] bg-white transition-all"
+                className="w-[40%] p-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-800 bg-white transition-all"
               >
                 {countryCodes.map((c) => (
                   <option key={c.code} value={c.code}>

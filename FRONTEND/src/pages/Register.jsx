@@ -3,7 +3,7 @@ import axios from "axios";
 import Notification from "../components/Notification";
 import { useNavigate } from "react-router-dom";
 import { fileToBase64 } from "../utils/fileToBase64";
-import { Eye, EyeOff, Image as ImageIcon, X } from "lucide-react";
+import { Eye, EyeOff, Image as ImageIcon, X, ArrowLeft } from "lucide-react";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -14,8 +14,8 @@ const Register = () => {
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [notify, setNotify] = useState({ type: "", message: "" });
-  
-  const fileInputRef = useRef(null); // Reference for the hidden file input
+
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const countryCodes = [
@@ -52,9 +52,7 @@ const Register = () => {
     e.preventDefault();
     try {
       let logoBase64 = null;
-      if (logoFile) {
-        logoBase64 = await fileToBase64(logoFile);
-      }
+      if (logoFile) logoBase64 = await fileToBase64(logoFile);
 
       await axios.post("http://localhost:5000/api/auth/register", {
         name,
@@ -85,15 +83,15 @@ const Register = () => {
         />
       )}
 
-      <div className="relative w-full max-w-md p-10 overflow-hidden transition bg-white border border-gray-200 shadow-2xl rounded-3xl">
-        {/* Aesthetic Background Blobs */}
-        <div className="absolute w-56 h-56 bg-[#06d6a0] rounded-full -top-20 -right-20 opacity-10 blur-3xl"></div>
-        
+      <div className="relative w-full max-w-md p-10 overflow-hidden bg-white border border-gray-200 shadow-2xl rounded-3xl">
+        <div className="absolute w-56 h-56 bg-teal-900 rounded-full -top-20 -right-20 opacity-10 blur-3xl"></div>
+
+        {/* ✅ SAME BACK BUTTON STYLE */}
         <button
           onClick={() => navigate("/")}
-          className="px-4 py-2 mb-6 font-bold text-teal-900 transition border border-teal-900 rounded-xl hover:bg-gray-50"
+          className="flex items-center gap-2 px-5 py-2.5 mb-8 font-bold text-teal-900 transition border border-gray-200 bg-gray-50 rounded-2xl hover:bg-gray-100 shadow-sm"
         >
-          ← Back
+          <ArrowLeft size={20} /> Back
         </button>
 
         <h2 className="mb-8 text-3xl font-extrabold text-center text-teal-900">
@@ -101,27 +99,22 @@ const Register = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="relative z-10 flex flex-col gap-4">
-          
-          {/* LOGO SELECTION LOGIC */}
+          {/* LOGO */}
           <div className="flex flex-col items-center mb-4">
-            <div 
+            <div
               onClick={() => fileInputRef.current.click()}
-              className="relative flex items-center justify-center w-24 h-24 transition-all border-2 border-dashed rounded-full cursor-pointer border-gray-300 hover:border-[#06d6a0] bg-gray-50 group overflow-hidden"
+              className="relative flex items-center justify-center w-24 h-24 border-2 border-gray-300 border-dashed rounded-full cursor-pointer bg-gray-50 hover:border-teal-800"
             >
               {logoPreview ? (
-                <>
-                  <img src={logoPreview} alt="Preview" className="object-cover w-full h-full" />
-                  <div className="absolute inset-0 flex items-center justify-center transition-opacity opacity-0 bg-black/40 group-hover:opacity-100">
-                    <ImageIcon className="text-white" size={24} />
-                  </div>
-                </>
+                <img src={logoPreview} alt="Preview" className="object-cover w-full h-full" />
               ) : (
-                <div className="flex flex-col items-center text-gray-400 group-hover:text-[#06d6a0]">
+                <div className="flex flex-col items-center text-gray-400">
                   <ImageIcon size={28} />
-                  <span className="text-[10px] font-bold mt-1">ADD LOGO</span>
+                  <span className="mt-1 text-[10px] font-bold">ADD LOGO</span>
                 </div>
               )}
             </div>
+
             <input
               type="file"
               ref={fileInputRef}
@@ -129,11 +122,12 @@ const Register = () => {
               onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
               className="hidden"
             />
+
             {logoFile && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setLogoFile(null)}
-                className="flex items-center gap-1 mt-2 text-xs font-bold text-red-500 hover:underline"
+                className="flex items-center gap-1 mt-2 text-xs font-bold text-red-500"
               >
                 <X size={12} /> Remove Logo
               </button>
@@ -145,7 +139,7 @@ const Register = () => {
             placeholder="Full Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+            className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50"
             required
           />
 
@@ -153,10 +147,12 @@ const Register = () => {
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="w-[40%] p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none"
+              className="w-[40%] p-3 border border-gray-200 rounded-xl bg-gray-50"
             >
               {countryCodes.map((c) => (
-                <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                <option key={c.code} value={c.code}>
+                  {c.code} — {c.name}
+                </option>
               ))}
             </select>
 
@@ -166,7 +162,7 @@ const Register = () => {
               value={phone}
               maxLength={10}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-              className="flex-1 p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none"
+              className="flex-1 p-3 border border-gray-200 rounded-xl bg-gray-50"
               required
             />
           </div>
@@ -176,7 +172,7 @@ const Register = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+            className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50"
             required
           />
 
@@ -186,7 +182,7 @@ const Register = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+              className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50"
               required
             />
             <button
@@ -200,20 +196,10 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full py-3 mt-4 text-lg font-bold text-white transition bg-teal-900 shadow-md rounded-xl hover:bg-teal-800"
+            className="w-full py-3 mt-4 text-lg font-bold text-white bg-teal-900 rounded-xl hover:bg-teal-800"
           >
             Register Admin
           </button>
-
-          <p className="mt-4 text-sm font-medium text-center text-gray-500">
-            Already have an account?{" "}
-            <span
-              onClick={() => navigate("/login")}
-              className="font-bold text-teal-900 cursor-pointer hover:underline"
-            >
-              Login here
-            </span>
-          </p>
         </form>
       </div>
     </div>

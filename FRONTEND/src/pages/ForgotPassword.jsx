@@ -69,14 +69,14 @@ const ForgotPassword = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             /* FIXED: Ring color updated to match requested green accent */
-            className="w-full p-4 text-gray-800 transition-all bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+            className="w-full p-4 text-gray-800 transition-all bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-800"
           />
         </div>
 
         <button
           onClick={handleSendOtp}
-          /* FIXED: Primary button uses bg-[#06d6a0] and hover:bg-[#05bc8c] */
-          className="w-full py-4 bg-[#06d6a0] text-white rounded-2xl font-black shadow-lg hover:bg-[#05bc8c] hover:scale-[1.02] active:scale-[0.97] transition-all uppercase tracking-wide"
+          
+          className="w-full py-4 bg-teal-900 text-white rounded-2xl font-black shadow-lg hover:bg-teal-800 hover:scale-[1.02] active:scale-[0.97] transition-all uppercase tracking-wide"
         >
           Send OTP
         </button>

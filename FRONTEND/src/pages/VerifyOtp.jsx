@@ -49,7 +49,7 @@ const VerifyOtp = () => {
         </button>
 
         <div className="flex flex-col items-center mb-6">
-          <div className="p-3 mb-4 bg-gray-50 rounded-full text-[#06d6a0]">
+          <div className="p-3 mb-4 text-teal-800 rounded-full bg-gray-50">
              <ShieldCheck size={40} />
           </div>
           <h2 className="text-3xl font-extrabold text-center text-teal-900">
@@ -67,7 +67,7 @@ const VerifyOtp = () => {
           maxLength={6}
           // Logic: Only allow digits
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-          className="w-full p-4 mb-5 text-center text-2xl tracking-[0.5em] font-bold border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+          className="w-full p-4 mb-5 text-center text-2xl tracking-[0.5em] font-bold border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-800"
         />
 
         <button

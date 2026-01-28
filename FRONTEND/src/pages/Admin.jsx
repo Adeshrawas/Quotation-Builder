@@ -156,7 +156,7 @@ const Admin = () => {
                             e.stopPropagation();
                             navigate(`/admin/edit/${user._id}`);
                           }}
-                          className="p-2 text-gray-400 transition-all rounded-lg hover:text-teal-600 hover:bg-gray-100"
+                          className="p-2 text-blue-500 transition-all rounded-lg hover:text-teal-800 hover:bg-gray-100"
                         >
                           <Pencil size={18} />
                         </button>

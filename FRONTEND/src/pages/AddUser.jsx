@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Notification from "../components/Notification";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 const AddUser = () => {
   const [newUser, setNewUser] = useState({
@@ -13,7 +13,6 @@ const AddUser = () => {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-
   const [notify, setNotify] = useState({ type: "", message: "" });
   const navigate = useNavigate();
 
@@ -28,23 +27,6 @@ const AddUser = () => {
     { code: "+81", name: "Japan" },
     { code: "+65", name: "Singapore" },
     { code: "+60", name: "Malaysia" },
-    { code: "+93", name: "Afghanistan" },
-    { code: "+355", name: "Albania" },
-    { code: "+213", name: "Algeria" },
-    { code: "+54", name: "Argentina" },
-    { code: "+43", name: "Austria" },
-    { code: "+32", name: "Belgium" },
-    { code: "+55", name: "Brazil" },
-    { code: "+56", name: "Chile" },
-    { code: "+86", name: "China" },
-    { code: "+57", name: "Colombia" },
-    { code: "+420", name: "Czech Republic" },
-    { code: "+45", name: "Denmark" },
-    { code: "+20", name: "Egypt" },
-    { code: "+358", name: "Finland" },
-    { code: "+33", name: "France" },
-    { code: "+49", name: "Germany" },
-    { code: "+30", name: "Greece" },
   ];
 
   const [countryCode, setCountryCode] = useState("+91");
@@ -65,10 +47,7 @@ const AddUser = () => {
 
     const onlyDigits = newUser.phone.replace(/\D/g, "");
     if (onlyDigits.length !== 10) {
-      setNotify({
-        type: "error",
-        message: "Phone number must be exactly 10 digits.",
-      });
+      setNotify({ type: "error", message: "Phone number must be exactly 10 digits." });
       return;
     }
 
@@ -94,11 +73,7 @@ const AddUser = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setNotify({
-        type: "success",
-        message: "User added successfully.",
-      });
-
+      setNotify({ type: "success", message: "User added successfully." });
       setTimeout(() => navigate("/admin"), 1500);
     } catch (err) {
       setNotify({
@@ -121,13 +96,14 @@ const AddUser = () => {
       <Header />
 
       <div className="flex items-start justify-center min-h-[90vh] px-6 pt-12">
-        <div className="w-full max-w-lg p-10 transition-all bg-white border border-gray-200 rounded-3xl">
+        <div className="w-full max-w-lg p-10 bg-white border border-gray-200 rounded-3xl">
 
+          {/* ✅ NEW BACK BUTTON (SAME STYLE AS REQUESTED) */}
           <button
             onClick={() => navigate("/admin")}
-            className="px-4 py-2 mb-6 text-teal-900 transition border border-teal-900 rounded-xl hover:bg-gray-100"
+            className="flex items-center gap-2 px-5 py-2.5 mb-8 font-bold text-teal-900 transition border border-gray-200 bg-gray-50 rounded-2xl hover:bg-gray-100 shadow-sm"
           >
-            ← Back
+            <ArrowLeft size={20} /> Back
           </button>
 
           <h2 className="mb-8 text-3xl font-extrabold text-center text-teal-900">
@@ -139,9 +115,7 @@ const AddUser = () => {
               type="text"
               placeholder="Full Name"
               value={newUser.name}
-              onChange={(e) =>
-                setNewUser({ ...newUser, name: e.target.value })
-              }
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
               className="input-style"
               required
             />
@@ -150,21 +124,15 @@ const AddUser = () => {
               type="email"
               placeholder="Email (Gmail only)"
               value={newUser.email}
-              onChange={(e) =>
-                setNewUser({ ...newUser, email: e.target.value })
-              }
+              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
               className="input-style"
               required
             />
 
             <div className="flex gap-3">
               <div className="relative w-[42%]">
-                <div
-                  onClick={() => setOpenDropdown(!openDropdown)}
-                  className="country-select"
-                >
-                  {countryCode} —{" "}
-                  {countryCodes.find((c) => c.code === countryCode)?.name}
+                <div onClick={() => setOpenDropdown(!openDropdown)} className="country-select">
+                  {countryCode} — {countryCodes.find((c) => c.code === countryCode)?.name}
                 </div>
 
                 {openDropdown && (
@@ -174,14 +142,12 @@ const AddUser = () => {
                       placeholder="Search country..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full p-2 mb-2 border border-gray-200 rounded-lg outline-none focus:border-teal-900"
+                      className="w-full p-2 mb-2 border border-gray-200 rounded-lg outline-none"
                     />
                     <div className="overflow-y-auto max-h-40">
                       {countryCodes
                         .filter((c) =>
-                          `${c.code} ${c.name}`
-                            .toLowerCase()
-                            .includes(search.toLowerCase())
+                          `${c.code} ${c.name}`.toLowerCase().includes(search.toLowerCase())
                         )
                         .map((c) => (
                           <div
@@ -221,9 +187,7 @@ const AddUser = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={newUser.password}
-                onChange={(e) =>
-                  setNewUser({ ...newUser, password: e.target.value })
-                }
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 className="w-full input-style"
                 required
               />
@@ -238,7 +202,7 @@ const AddUser = () => {
 
             <button
               type="submit"
-              className="py-3 mt-2 font-semibold text-white transition-all bg-teal-900 rounded-xl hover:bg-teal-800"
+              className="py-3 mt-2 font-semibold text-white bg-teal-900 rounded-xl hover:bg-teal-800"
             >
               Add User
             </button>
@@ -252,7 +216,6 @@ const AddUser = () => {
           border-radius: 14px;
           border: 1px solid #e5e7eb;
           font-size: 15px;
-          transition: 0.2s;
           outline: none;
         }
         .input-style:focus {

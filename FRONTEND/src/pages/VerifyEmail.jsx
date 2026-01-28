@@ -28,10 +28,10 @@ const VerifyEmail = () => {
         
         <div className="flex justify-center mb-6">
           {status === "loading" && (
-            <Loader2 className="w-16 h-16 text-[#06d6a0] animate-spin" />
+            <Loader2 className="w-16 h-16 text-teal-800 animate-spin" />
           )}
           {status === "success" && (
-            <CheckCircle className="w-16 h-16 text-[#06d6a0]" />
+            <CheckCircle className="w-16 h-16 text-teal-800" />
           )}
           {status === "error" && (
             <XCircle className="w-16 h-16 text-red-500" />

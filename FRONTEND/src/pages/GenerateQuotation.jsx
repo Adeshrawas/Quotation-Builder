@@ -66,7 +66,6 @@ const CustomSingleValue = ({ data }) => (
   </div>
 );
 
-// FIX 1: Clean & Readable UI for Live Calculation
 const ResultItemLayout = ({ item }) => (
   <div className="flex items-start gap-3 py-2">
     {item.image && (
@@ -83,13 +82,24 @@ const ResultItemLayout = ({ item }) => (
         {item.name}
       </span>
       {item.description && (
-        <span className="text-[10px] text-gray-400 leading-tight mt-0.5 block">
+        <span className="text-[10px] text-gray-400 leading-tight mt-0.5 block truncate max-w-[200px]">
           {item.description}
         </span>
       )}
-      {/* Updated Custom Description Style */}
       {item.customDescription && (
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-600 break-words">
+        <p
+          className="
+            mt-1
+            text-[11px]
+            leading-relaxed
+            text-gray-600
+            break-all
+            overflow-hidden
+            line-clamp-2
+            max-w-[260px]
+          "
+          title={item.customDescription}
+        >
           {item.customDescription}
         </p>
       )}
@@ -267,7 +277,6 @@ const GenerateQuotation = () => {
     }
   };
 
-  // FIX 2: PDF Logic with Dynamic Spacing & No Text Overlap
   const handleDownloadReceipt = async () => {
     if (!quoteItems.length) {
       setNotify({ type: "error", message: "No items to download." });
@@ -306,73 +315,79 @@ const GenerateQuotation = () => {
     doc.setTextColor(0);
     doc.text(`Date: ${new Date().toLocaleDateString("en-IN")}`, pageWidth - margin, headerY + 30, { align: "right" });
 
-    let startY = 140;
+    // --- TABLE HEADER ---
+    let startY = 130;
+    doc.setDrawColor(200);
+    doc.setLineWidth(1);
+    doc.line(margin, startY, pageWidth - margin, startY); // Top Line
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(50);
+    doc.text("ITEM / DESCRIPTION", margin + 70, startY + 15);
+    doc.text("DIMENSIONS", pageWidth - 180, startY + 15, { align: "center" });
+    doc.text("RATE/COST", pageWidth - margin, startY + 15, { align: "right" });
+    
+    startY += 25;
+    doc.line(margin, startY, pageWidth - margin, startY); // Bottom Line of Header
+    startY += 20;
+
     const imageSize = 55;
     const leftX = margin;
-    const textX = margin + imageSize + 20;
+    const textX = margin + imageSize + 15;
     const rightX = pageWidth - margin;
 
     for (const item of quoteItems) {
-      // PDF Item Formatting
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(70);
-
       const baseDescription = item.description?.trim() || "";
       const customDescription = item.customDescription?.trim() || "";
       let descriptionLines = [];
       if (baseDescription) descriptionLines.push(baseDescription);
       if (customDescription) descriptionLines.push(customDescription);
 
-      // Wrap text based on PDF width
-      const wrappedText = doc.splitTextToSize(descriptionLines.join("\n\n"), 360);
-      const descriptionHeight = wrappedText.length * 14; 
+      const wrappedText = doc.splitTextToSize(descriptionLines.join("\n\n"), 240); // Adjusted width
+      const descriptionHeight = wrappedText.length * 16; 
+      const itemTotalHeight = Math.max(imageSize, descriptionHeight + 40) + 20;
 
-      // Check for page break
-      const itemTotalHeight = Math.max(imageSize, descriptionHeight + 40) + 40;
       if (startY + itemTotalHeight > pageHeight - bottomMargin) {
         drawFooter();
         doc.addPage();
         startY = 60;
       }
 
-      // Add Image
+      // Vertical separator line per item
+      doc.setDrawColor(235);
+      doc.setLineWidth(0.5);
+      doc.line(textX - 8, startY, textX - 8, startY + itemTotalHeight - 10);
+
       const img = item.image ? await imageToBase64(item.image) : null;
       if (img) {
         doc.addImage(img, img.includes("png") ? "PNG" : "JPEG", leftX, startY, imageSize, imageSize);
       }
 
-      // Add Name
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(0);
-      doc.text(item.name.toUpperCase(), textX, startY + 18);
-
-      // Add Wrapped Descriptions
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(70);
-      doc.text(wrappedText, textX, startY + 40);
-
-      // Add Dimensions
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      const dimensionY = startY + Math.max(imageSize, descriptionHeight + 35) + 5;
-      doc.text(`Size: ${item.length} × ${item.height} ft`, textX, dimensionY);
-
-      // Add Cost
+      // Item Name
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(0);
-      doc.text(`Rs. ${Number(item.cost).toLocaleString("en-IN")}`, rightX, startY + 32, { align: "right" });
+      doc.text(item.name.toUpperCase(), textX, startY + 12);
 
-      // Add Divider line
-      doc.setDrawColor(230);
-      doc.setLineWidth(0.5);
-      doc.line(leftX, dimensionY + 10, rightX, dimensionY + 10);
+      // Description
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(80);
+      doc.text(wrappedText, textX, startY + 28);
 
-      // Increment Y dynamically based on text height
-      startY = dimensionY + 30;
+      // Dimensions
+      doc.setFontSize(10);
+      doc.setTextColor(60);
+      doc.text(`${item.length} x ${item.height} ft`, pageWidth - 180, startY + 12, { align: "center" });
+
+      // Cost
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0);
+      doc.text(`Rs. ${Number(item.cost).toLocaleString("en-IN")}`, rightX, startY + 12, { align: "right" });
+
+      startY += itemTotalHeight;
     }
 
     let currentY = startY + 10;
@@ -381,6 +396,10 @@ const GenerateQuotation = () => {
       doc.addPage();
       currentY = 60;
     }
+
+    doc.setDrawColor(200);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 25;
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
@@ -451,7 +470,7 @@ const GenerateQuotation = () => {
           {/* Input Panel */}
           <div className="flex flex-col p-8 bg-white border border-gray-100 shadow-sm rounded-[2rem] hover:shadow-md transition-shadow">
             <h3 className="flex items-center pb-4 mb-6 text-2xl font-bold text-teal-900 border-b border-gray-50">
-              <Calculator className="w-6 h-6 mr-2 text-[#06d6a0]" /> Calculation Input
+              <Calculator className="w-6 h-6 mr-2 text-teal-900" /> Calculation Input
             </h3>
             <form onSubmit={handleAddItem} className="flex-grow">
               <div className="mb-6">
@@ -500,7 +519,7 @@ const GenerateQuotation = () => {
               </div>
 
               <div className="flex gap-4">
-                <button type="submit" className="flex items-center justify-center flex-1 gap-2 font-bold text-white transition-all bg-teal-900 shadow-lg h-14 rounded-xl hover:bg-teal-800">
+                <button type="submit" className="flex items-center justify-center flex-1 gap-2 font-bold text-white transition-all bg-teal-900 shadow-lg hover:bg-teal-800 h-14 rounded-xl">
                   <PlusCircle size={20} /> Add Item
                 </button>
                 <button type="button" onClick={() => setInputData({ item: "", length: 0.0, height: 0.0, description: "" })} className="px-6 font-semibold text-gray-500 transition-colors bg-gray-100 h-14 rounded-xl hover:bg-gray-200">Reset</button>
@@ -548,7 +567,7 @@ const GenerateQuotation = () => {
                       onChange={(e) => setDiscountInput(e.target.value)}
                       className="w-32 p-2 text-sm border border-gray-300 outline-none rounded-xl focus:ring-1 focus:ring-teal-800"
                     />
-                    <button onClick={applyDiscount} className="px-4 py-2 text-sm font-semibold text-white transition-all bg-teal-600 rounded-xl hover:bg-teal-700">Apply</button>
+                    <button onClick={applyDiscount} className="px-4 py-2 text-sm font-semibold text-white transition-all bg-teal-900 hover:bg-teal-800 rounded-xl">Apply</button>
                   </div>
 
                   {appliedDiscount > 0 && (
@@ -650,7 +669,7 @@ const GenerateQuotation = () => {
                 <input value={complaint.title} onChange={(e) => setComplaint({ ...complaint, title: e.target.value })} placeholder="Subject" className="p-4 font-medium border border-gray-100 outline-none bg-gray-50 rounded-2xl focus:ring-2 focus:ring-teal-800" required />
                 <textarea value={complaint.message} onChange={(e) => setComplaint({ ...complaint, message: e.target.value })} placeholder="Describe what happened..." className="h-32 p-4 font-medium border border-gray-100 outline-none resize-none bg-gray-50 rounded-2xl focus:ring-2 focus:ring-teal-800" required />
                 <div className="flex gap-3 mt-2">
-                  <button type="submit" className="flex-1 py-4 font-bold text-white transition-all bg-teal-900 shadow-lg rounded-2xl hover:bg-teal-800">Submit Report</button>
+                  <button type="submit" className="flex-1 py-4 font-bold text-white transition-all bg-teal-900 shadow-lg hover:bg-teal-800 rounded-2xl">Submit Report</button>
                   <button type="button" onClick={() => setShowComplaintModal(false)} className="px-6 py-4 font-bold text-gray-900 hover:text-gray-800">Cancel</button>
                 </div>
               </form>
@@ -662,4 +681,4 @@ const GenerateQuotation = () => {
   );
 };
 
-export default GenerateQuotation;
+export default GenerateQuotation; 

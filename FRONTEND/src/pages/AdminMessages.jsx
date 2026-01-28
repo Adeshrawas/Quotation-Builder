@@ -86,7 +86,7 @@ const AdminMessages = () => {
           onClick={() => navigate("/admin")}
           className="flex items-center gap-2 px-5 py-2.5 mb-8 font-bold text-teal-900 transition border border-gray-200 bg-gray-50 rounded-2xl hover:bg-gray-100 shadow-sm"
         >
-          <ArrowLeft size={20} /> Back to Admin
+          <ArrowLeft size={20} /> Back
         </button>
 
         <h1 className="mb-8 text-4xl font-extrabold text-teal-900">User Messages</h1>
@@ -145,7 +145,7 @@ const AdminMessages = () => {
                       <button 
                         onClick={() => sendReply(m._id)} 
                         /* FIXED: Applied requested #06d6a0 and hover colors */
-                        className="flex items-center gap-2 px-6 py-3 font-bold text-white transition bg-[#06d6a0] shadow-sm rounded-xl hover:bg-[#05bc8c] active:scale-95"
+                        className="flex items-center gap-2 px-6 py-3 font-bold text-white transition bg-teal-900 shadow-sm rounded-xl hover:bg-teal-800 active:scale-95"
                       >
                         <Send size={18} /> Send
                       </button>
