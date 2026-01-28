@@ -3,7 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Notification from "../components/Notification";
-import { Eye, EyeOff } from "lucide-react"; // Added imports
+import { Eye, EyeOff } from "lucide-react";
 
 const AddUser = () => {
   const [newUser, setNewUser] = useState({
@@ -12,7 +12,7 @@ const AddUser = () => {
     phone: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false); // Added state
+  const [showPassword, setShowPassword] = useState(false);
 
   const [notify, setNotify] = useState({ type: "", message: "" });
   const navigate = useNavigate();
@@ -109,7 +109,7 @@ const AddUser = () => {
   };
 
   return (
-    <div className="min-h-screen bg-teal-100">
+    <div className="min-h-screen bg-gray-100">
       {notify.message && (
         <Notification
           type={notify.type}
@@ -121,11 +121,11 @@ const AddUser = () => {
       <Header />
 
       <div className="flex items-start justify-center min-h-[90vh] px-6 pt-12">
-        <div className="w-full max-w-lg p-10 transition-all bg-white border border-teal-100 shadow-2xl rounded-3xl hover:shadow-teal-500/40">
+        <div className="w-full max-w-lg p-10 transition-all bg-white border border-gray-200 rounded-3xl">
 
           <button
             onClick={() => navigate("/admin")}
-            className="px-4 py-2 mb-6 text-teal-600 transition border border-teal-500 rounded-xl hover:bg-teal-100"
+            className="px-4 py-2 mb-6 text-teal-900 transition border border-teal-900 rounded-xl hover:bg-gray-100"
           >
             ← Back
           </button>
@@ -168,13 +168,13 @@ const AddUser = () => {
                 </div>
 
                 {openDropdown && (
-                  <div className="absolute z-50 w-full p-2 mt-1 bg-white border shadow rounded-xl">
+                  <div className="absolute z-50 w-full p-2 mt-1 bg-white border border-gray-200 rounded-xl">
                     <input
                       type="text"
                       placeholder="Search country..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="w-full p-2 mb-2 border rounded-lg"
+                      className="w-full p-2 mb-2 border border-gray-200 rounded-lg outline-none focus:border-teal-900"
                     />
                     <div className="overflow-y-auto max-h-40">
                       {countryCodes
@@ -191,7 +191,7 @@ const AddUser = () => {
                               setOpenDropdown(false);
                               setSearch("");
                             }}
-                            className="p-2 rounded cursor-pointer hover:bg-teal-100"
+                            className="p-2 rounded cursor-pointer hover:bg-gray-100"
                           >
                             {c.code} — {c.name}
                           </div>
@@ -216,7 +216,7 @@ const AddUser = () => {
               />
             </div>
 
-            <div className="relative"> {/* Password Wrapper */}
+            <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
@@ -230,7 +230,7 @@ const AddUser = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute text-teal-500 right-3 top-3"
+                className="absolute text-teal-900 right-3 top-3"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -238,7 +238,7 @@ const AddUser = () => {
 
             <button
               type="submit"
-              className="py-3 mt-2 font-semibold text-white transition-all bg-teal-500 shadow-md rounded-xl hover:bg-teal-600 hover:shadow-lg"
+              className="py-3 mt-2 font-semibold text-white transition-all bg-teal-900 rounded-xl hover:bg-teal-800"
             >
               Add User
             </button>
@@ -250,21 +250,24 @@ const AddUser = () => {
         .input-style {
           padding: 14px;
           border-radius: 14px;
-          border: 1px solid #5eead4;
+          border: 1px solid #e5e7eb;
           font-size: 15px;
           transition: 0.2s;
+          outline: none;
         }
         .input-style:focus {
-          border-color: #14b8a6;
-          box-shadow: 0 0 0 2px rgba(20,184,166,0.2);
-          outline: none;
+          border-color: #134e4a;
         }
         .country-select {
           padding: 14px;
           border-radius: 14px;
-          border: 1px solid #5eead4;
+          border: 1px solid #e5e7eb;
           cursor: pointer;
           background: white;
+          font-size: 14px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
       `}</style>
     </div>

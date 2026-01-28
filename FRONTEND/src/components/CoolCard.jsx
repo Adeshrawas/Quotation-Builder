@@ -1,34 +1,41 @@
 import React from "react";
 
 function CoolCard({ title, children }) {
+  // useEffect to ensure the body background is consistent across the app
+  React.useEffect(() => {
+    document.body.className = "bg-gray-100";
+  }, []);
+
   return (
-    <div className="flex justify-center px-6 py-10">
+    /* Removed py-10 and replaced with pt-0 to eliminate the gap with the header */
+    <div className="flex justify-center min-h-screen px-6 pt-0 bg-gray-100">
       <div
-        className="w-full max-w-lg p-8 transition-all duration-300 bg-white border border-teal-100 shadow-xl rounded-2xl hover:shadow-teal-500/40 hover:-translate-y-1"
+        className="w-full max-w-lg p-8 transition-all duration-300 bg-white border-x border-b border-gray-200 shadow-sm rounded-b-[2.5rem] hover:border-gray-300"
       >
         <h2
-          className="pb-3 mb-5 text-3xl font-extrabold tracking-wide text-teal-900 border-b border-teal-100"
+          className="pb-3 mb-5 text-3xl font-black tracking-tight text-teal-900 border-b border-gray-100"
         >
           {title}
         </h2>
 
-        <p className="leading-relaxed text-teal-600">
+        <div className="font-medium leading-relaxed text-gray-600">
           {children}
-        </p>
+        </div>
 
         <button
           className="
-            mt-7
-            px-6 py-2.5
-            font-semibold
+            mt-8
+            w-full
+            px-6 py-4
+            font-black
+            uppercase
+            tracking-widest
             text-white
-            bg-teal-500
-            rounded-xl
-            shadow-md
+            bg-teal-900
+            rounded-2xl
             transition-all duration-200
-            hover:bg-teal-600
-            hover:shadow-lg
-            active:scale-[0.97]
+            hover:bg-teal-800
+            active:scale-[0.98]
           "
         >
           Learn More

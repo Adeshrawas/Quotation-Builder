@@ -1,7 +1,9 @@
-/* src/index.css - For Tailwind CSS v4 */
-
-/* ⚠️ This single line replaces all three old @tailwind directives ⚠️ */
+/* src/index.css */
 @import "tailwindcss";
+
 body {
-  @apply text-black bg-white;
+  /* Change bg-white to bg-gray-100 here to kill the strip */
+  @apply text-black bg-gray-100;
+  margin: 0;
+  padding: 0;
 }

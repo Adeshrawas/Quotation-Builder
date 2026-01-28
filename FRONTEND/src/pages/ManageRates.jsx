@@ -25,13 +25,14 @@ const ManageRates = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
+
     if (!user || user.role !== "admin") {
-      alert("Access denied. Only admins can access this page.");
       navigate("/generate-quotation");
-    } else {
-      fetchRates();
+      return;
     }
-  }, [navigate, fetchRates]);
+
+    fetchRates();
+  }, [fetchRates, navigate]);
 
   const clearMessages = () => {
     setTimeout(() => {
@@ -41,8 +42,8 @@ const ManageRates = () => {
   };
 
   const handleAddOrUpdate = async () => {
-    if (!itemName.trim() || !rate || !description.trim() || !image) {
-      setError("All fields (Name, Rate, Description, and Image) are required.");
+    if (!itemName.trim() || !rate) {
+      setError("Item name and rate are required.");
       clearMessages();
       return;
     }
@@ -56,15 +57,19 @@ const ManageRates = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const imageBase64 = await fileToBase64(image);
+
+      let imageBase64 = null;
+      if (image) {
+        imageBase64 = await fileToBase64(image);
+      }
 
       await axios.post(
         "http://localhost:5000/api/rates",
         {
           itemName,
           rate: rateValue,
-          description,
-          imageBase64, 
+          description: description || "",
+          imageBase64,
         },
         {
           headers: {
@@ -75,7 +80,7 @@ const ManageRates = () => {
 
       setSuccess("Rate saved successfully.");
       await fetchRates();
-      
+
       setItemName("");
       setRate("");
       setDescription("");
@@ -83,11 +88,11 @@ const ManageRates = () => {
     } catch (err) {
       setError("Error saving rate.");
     }
+
     clearMessages();
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/rates/${id}`, {
@@ -120,7 +125,6 @@ const ManageRates = () => {
           itemName: currentItem.itemName,
           rate: rateValue,
           description: currentItem.description,
-          // Note: Backend needs to handle cases where imageBase64 isn't sent in PUT
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -136,24 +140,22 @@ const ManageRates = () => {
   };
 
   return (
-    <div className="flex items-start justify-center min-h-screen py-8 bg-[#cbf3f0]">
+    <div className="flex items-start justify-center min-h-screen py-8 bg-gray-100">
       <div className="w-full max-w-6xl p-6 bg-white shadow-xl rounded-[2.5rem] md:p-10">
-        
         {(error || success) && (
-          <div className={`mb-6 p-4 rounded-xl font-bold text-center ${error ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+          <div
+            className={`mb-6 p-4 rounded-xl font-bold text-center ${
+              error ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+            }`}
+          >
             {error || success}
           </div>
         )}
 
-        <h1 className="mb-8 text-4xl font-extrabold text-[#004e64]">
-          Rate Management
-        </h1>
+        <h1 className="mb-8 text-4xl font-extrabold text-teal-900">Rate Management</h1>
 
-        {/* Input Form Section */}
-        <div className="p-8 mb-10 border border-[#e9fffd] shadow-lg bg-[#f0fdfa] rounded-[2rem]">
-          <h2 className="mb-6 text-2xl font-bold text-[#004e64]">
-            + Add New Item Rate
-          </h2>
+        <div className="p-8 mb-10 border border-gray-100 shadow-lg bg-gray-50/50 rounded-[2rem]">
+          <h2 className="mb-6 text-2xl font-bold text-teal-900">+ Add New Item Rate</h2>
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="flex flex-col">
@@ -183,7 +185,11 @@ const ManageRates = () => {
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-bold text-gray-600">Description</label>
-              <span className={`text-[10px] font-bold ${description.length === MAX_DESCRIPTION_LENGTH ? 'text-red-500' : 'text-gray-400'}`}>
+              <span
+                className={`text-[10px] font-bold ${
+                  description.length === MAX_DESCRIPTION_LENGTH ? "text-red-500" : "text-gray-400"
+                }`}
+              >
                 {description.length}/{MAX_DESCRIPTION_LENGTH}
               </span>
             </div>
@@ -208,12 +214,12 @@ const ManageRates = () => {
                 onChange={(e) => setImage(e.target.files[0])}
                 className="hidden"
               />
-              <span className="inline-flex items-center justify-center px-6 py-3 font-bold text-white bg-[#00b4d8] shadow-md cursor-pointer rounded-xl hover:bg-[#0096b4] transition-all">
+              <span className="inline-flex items-center justify-center px-6 py-3 font-bold text-white transition-all bg-teal-900 shadow-md cursor-pointer rounded-xl hover:bg-teal-800">
                 <ImageIcon size={18} className="mr-2" />
                 Choose Image
               </span>
             </label>
-            
+
             {image && (
               <span className="flex items-center gap-1 px-3 py-1 text-sm font-bold border rounded-lg text-emerald-600 bg-emerald-50 border-emerald-100">
                 <CheckCircle size={14} />
@@ -223,26 +229,24 @@ const ManageRates = () => {
 
             <button
               onClick={handleAddOrUpdate}
-              className="px-8 py-3 font-bold text-white bg-[#06d6a0] shadow-md rounded-xl hover:bg-[#05bc8c] transition-all ml-auto"
+              className="px-8 py-3 ml-auto font-bold text-white transition-all bg-teal-900 shadow-md rounded-xl hover:bg-teal-800"
             >
               Save Rate
             </button>
           </div>
         </div>
 
-        {/* Rates List Grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {rates.map((item) => (
             <div
               key={item._id}
-              className="relative p-6 bg-white border border-[#e9fffd] shadow-md rounded-[1.5rem] hover:shadow-lg transition-shadow overflow-hidden"
+              className="relative p-6 bg-white border border-gray-100 shadow-md rounded-[1.5rem] hover:shadow-lg transition-shadow overflow-hidden"
             >
-              {/* Image Preview for the Card */}
               {item.image && (
                 <div className="w-full h-32 mb-4 overflow-hidden rounded-xl bg-gray-50">
-                   <img 
-                    src={item.image} 
-                    alt={item.itemName} 
+                  <img
+                    src={item.image}
+                    alt={item.itemName}
                     className="object-contain w-full h-full"
                   />
                 </div>
@@ -250,14 +254,12 @@ const ManageRates = () => {
 
               <button
                 onClick={() => handleDelete(item._id, item.itemName)}
-                className="absolute p-1 text-gray-400 transition-colors rounded-full top-4 right-4 hover:text-red-500 bg-white/80"
+                className="absolute p-1 text-red-500 transition-colors rounded-full shadow-sm top-4 right-4 hover:bg-red-50 bg-white/80"
               >
                 <Trash2 size={18} />
               </button>
 
-              <h3 className="pr-6 text-xl font-bold text-[#004e64] truncate">
-                {item.itemName}
-              </h3>
+              <h3 className="pr-6 text-xl font-bold text-teal-900 truncate">{item.itemName}</h3>
 
               <p className="mt-2 text-sm text-gray-500 line-clamp-2 min-h-[2.5rem]">
                 {item.description}
@@ -286,15 +288,13 @@ const ManageRates = () => {
                 </div>
               ) : (
                 <div className="flex items-center justify-between mt-6">
-                  <span className="text-xl font-black text-[#06d6a0]">
-                    ₹{item.rate}
-                  </span>
+                  <span className="text-xl font-black text-[#06d6a0]">₹{item.rate}</span>
                   <button
                     onClick={() => {
                       setEditingItem(item._id);
                       setNewRate(item.rate);
                     }}
-                    className="flex items-center px-4 py-2 font-bold text-white bg-[#00b4d8] rounded-xl hover:bg-[#0096b4] transition-all text-sm"
+                    className="flex items-center px-4 py-2 text-sm font-bold text-white transition-all bg-teal-900 rounded-xl hover:bg-teal-800"
                   >
                     <Edit3 size={14} className="mr-2" />
                     Edit

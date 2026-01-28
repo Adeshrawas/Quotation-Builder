@@ -12,9 +12,10 @@ const Notification = ({ type = "success", message, onClose, duration = 3000 }) =
     return () => clearTimeout(timer);
   }, [message, duration, onClose]);
 
+  // Updated success to bg-teal-900 to match your theme
   const styles =
     type === "success"
-      ? "bg-teal-500 text-white"
+      ? "bg-teal-900 text-white"
       : type === "error"
       ? "bg-red-500 text-white"
       : "bg-gray-800 text-white";
@@ -22,7 +23,7 @@ const Notification = ({ type = "success", message, onClose, duration = 3000 }) =
   return (
     <div className="fixed z-50 top-6 right-6 animate-slide-in">
       <div
-        className={`flex items-center gap-4 px-6 py-4 rounded-2xl shadow-xl ${styles}`}
+        className={`flex items-center gap-4 px-6 py-4 rounded-2xl ${styles}`}
       >
         <span className="text-sm font-semibold">{message}</span>
 

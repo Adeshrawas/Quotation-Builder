@@ -4,7 +4,7 @@ import { verifyToken, verifyAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* CREATE */
+/* CREATE RATE */
 router.post(
   "/",
   verifyToken,
@@ -13,35 +13,45 @@ router.post(
     try {
       const { itemName, rate, description, imageBase64 } = req.body;
 
-      if (!imageBase64 || !imageBase64.startsWith("data:image")) {
+      // 1. Validate mandatory fields
+      if (!itemName || !rate) {
+        return res.status(400).json({ message: "Item name and rate are required" });
+      }
+
+      // 2. Validate image format ONLY if an image is actually provided
+      if (imageBase64 && !imageBase64.startsWith("data:image")) {
         return res.status(400).json({ message: "Invalid image format" });
       }
 
       const rateItem = new Rate({
         itemName,
         rate,
-        description,
-        imageBase64, // 🔥 BASE64
+        description: description || "", // Default to empty string
+        imageBase64: imageBase64 || null, // Allow null if no image
         adminId: req.user._id,
       });
 
       await rateItem.save();
-      res.json(rateItem);
+      res.status(201).json(rateItem);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
+      console.error("Create Rate Error:", err);
+      res.status(500).json({ message: "Server error while creating rate" });
     }
   }
 );
 
-/* GET */
+/* GET ALL RATES */
 router.get("/", verifyToken, async (req, res) => {
-  const adminId = req.user.role === "admin" ? req.user._id : req.user.adminId;
-  const rates = await Rate.find({ adminId });
-  res.json(rates);
+  try {
+    const adminId = req.user.role === "admin" ? req.user._id : req.user.adminId;
+    const rates = await Rate.find({ adminId });
+    res.json(rates);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching rates" });
+  }
 });
 
-/* UPDATE */
+/* UPDATE RATE */
 router.put(
   "/:id",
   verifyToken,
@@ -50,40 +60,54 @@ router.put(
     try {
       const { itemName, rate, description, imageBase64 } = req.body;
       
-      const update = {
+      const updateData = {
         itemName,
         rate,
-        description,
+        description: description || "",
       };
 
+      // Only update image if a new base64 string is provided
       if (imageBase64) {
         if (!imageBase64.startsWith("data:image")) {
           return res.status(400).json({ message: "Invalid image format" });
         }
-        update.imageBase64 = imageBase64;
+        updateData.imageBase64 = imageBase64;
       }
 
       const updated = await Rate.findOneAndUpdate(
         { _id: req.params.id, adminId: req.user._id },
-        { $set: update },
+        { $set: updateData },
         { new: true }
       );
 
+      if (!updated) {
+        return res.status(404).json({ message: "Rate not found or unauthorized" });
+      }
+
       res.json(updated);
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Server error" });
+      console.error("Update Rate Error:", err);
+      res.status(500).json({ message: "Server error while updating rate" });
     }
   }
 );
 
-/* DELETE */
+/* DELETE RATE */
 router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
-  await Rate.findOneAndDelete({
-    _id: req.params.id,
-    adminId: req.user._id,
-  });
-  res.json({ message: "Deleted" });
+  try {
+    const deleted = await Rate.findOneAndDelete({
+      _id: req.params.id,
+      adminId: req.user._id,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Rate not found or unauthorized" });
+    }
+
+    res.json({ message: "Rate deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Error deleting rate" });
+  }
 });
 
 export default router;

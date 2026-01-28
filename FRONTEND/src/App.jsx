@@ -23,7 +23,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 
 // Context Providers
-import { AuthProvider } from "./context/AuthContext"; // Added AuthProvider import
+import { AuthProvider } from "./context/AuthContext";
 import { RateProvider } from "./context/RateContext";
 import { QuoteProvider } from "./context/QuoteContext";
 
@@ -56,18 +56,20 @@ function App() {
     return children;
   };
 
+  // ✅ FIX: SAME bg-gray-100 for header + page (NO WHITE STRIP)
   const WithHeader = ({ children }) => (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <Header />
-      <main>{children}</main>
+      <main className="pt-6 bg-gray-100">
+        {children}
+      </main>
     </div>
   );
 
   return (
-    <AuthProvider> {/* Wrapped with AuthProvider */}
+    <AuthProvider>
       <RateProvider>
         <QuoteProvider>
-
           {notify && (
             <Notify
               type={notify.type}
@@ -78,7 +80,6 @@ function App() {
 
           <Router>
             <Routes>
-
               {/* PUBLIC */}
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
@@ -146,7 +147,7 @@ function App() {
               />
 
               <Route
-                path="/manage-rates"
+                path="/admin/manage-rates"
                 element={
                   <PrivateRoute requiredRole="admin">
                     <WithHeader>
@@ -170,7 +171,6 @@ function App() {
 
               {/* FALLBACK */}
               <Route path="*" element={<Navigate to="/" replace />} />
-
             </Routes>
           </Router>
         </QuoteProvider>

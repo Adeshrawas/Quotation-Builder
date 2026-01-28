@@ -36,12 +36,10 @@ const PuppeteerDownloadButton = () => {
         px-5 py-2.5
         text-sm font-semibold
         text-white
-        bg-teal-500
+        bg-teal-900
         rounded-xl
-        shadow-md
         transition-all duration-200
-        hover:bg-teal-600
-        hover:shadow-lg
+        hover:bg-teal-800
         active:scale-[0.97]
       "
     >

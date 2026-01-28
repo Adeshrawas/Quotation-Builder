@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Settings, IndianRupee, FileText, LogOut } from "lucide-react";
 import axios from "axios";
 
+const HEADER_HEIGHT = "96px"; // 🔥 must match header height
+
 const Header = () => {
   const navigate = useNavigate();
   const storedUser = localStorage.getItem("user");
@@ -12,20 +14,18 @@ const Header = () => {
   const token = localStorage.getItem("token");
   const isLoggedIn = !!token;
 
-  /* =============================
-      FETCH ADMIN LOGO (UPDATED)
-      ============================= */
   useEffect(() => {
     const fetchAdminLogo = async () => {
       try {
-        if (user?.role === "user" && user.adminId) {
+        if (!token || !user) return;
+
+        if (user.role === "user" && user.adminId) {
           const res = await axios.get(
-            `http://localhost:5000/api/auth/admin-logo/${user.adminId}`
+            `http://localhost:5000/api/auth/admin-logo/${user.adminId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
           );
-          if (res.data.logoBase64) {
-            setAdminLogo(res.data.logoBase64);
-          }
-        } else if (user?.role === "admin" && user.logoBase64) {
+          if (res.data.logoBase64) setAdminLogo(res.data.logoBase64);
+        } else if (user.role === "admin" && user.logoBase64) {
           setAdminLogo(user.logoBase64);
         }
       } catch {
@@ -34,7 +34,7 @@ const Header = () => {
     };
 
     fetchAdminLogo();
-  }, [user]);
+  }, [user, token]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -47,85 +47,67 @@ const Header = () => {
 
   if (user?.role === "admin") {
     navItems.push(
-      { name: "Manage Rates", path: "/manage-rates", icon: IndianRupee },
+      { name: "Manage Rates", path: "/admin/manage-rates", icon: IndianRupee },
       { name: "Admin", path: "/admin", icon: Settings }
     );
   }
 
-  const displayName =
-    user?.name || user?.email?.split("@")[0] || "User";
+  const displayName = user?.name || user?.email?.split("@")[0] || "User";
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-teal-100 shadow-md">
-      <div className="container flex items-center justify-between px-6 py-3 mx-auto">
-
-        {/* LOGO / TITLE */}
-        <Link
-          to="/generate-quotation"
-          className="flex items-center gap-3 transition-opacity hover:opacity-90"
-        >
-          {adminLogo ? (
-            <img
-              src={adminLogo}
-              alt="logo"
-              className="object-contain h-12 max-w-[180px]"
-            />
-          ) : (
-            <span className="text-2xl font-extrabold tracking-wide text-teal-900">
-              Quotation System
-            </span>
-          )}
-        </Link>
-
-        {/* NAVIGATION */}
-        {isLoggedIn && (
-          <nav className="flex items-center gap-2 md:gap-4">
-
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className="flex items-center px-4 py-2 text-sm font-medium text-teal-600 transition-all rounded-xl hover:bg-teal-100 hover:text-teal-900"
-              >
-                <item.icon className="w-4 h-4 mr-2" />
-                {item.name}
-              </Link>
-            ))}
-
-            {/* USER BADGE */}
-            <div className="items-center hidden px-4 py-2 bg-teal-100 border border-teal-100 sm:flex rounded-xl">
-              <span className="text-sm text-teal-600">
-                Welcome{" "}
-                <b className="font-semibold text-teal-900">
-                  {displayName}
-                </b>
+    <>
+      {/* 🔥 FIXED HEADER - SHADOWS REMOVED */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 rounded-b-[2.5rem]"
+        style={{ height: HEADER_HEIGHT }}
+      >
+        <div className="container flex items-center justify-between h-full px-8 mx-auto">
+          <Link to="/generate-quotation" className="flex items-center gap-4">
+            {adminLogo ? (
+              <img
+                src={adminLogo}
+                alt="logo"
+                className="object-contain h-14 max-w-[220px]"
+              />
+            ) : (
+              <span className="text-3xl font-extrabold text-teal-900">
+                Quotation System
               </span>
-            </div>
+            )}
+          </Link>
 
-            {/* LOGOUT */}
-            <button
-              onClick={handleLogout}
-              className="
-                flex items-center gap-2
-                px-4 py-2
-                text-sm font-semibold
-                text-white
-                bg-teal-500
-                rounded-xl
-                shadow-md
-                transition-all
-                hover:bg-teal-600
-                hover:shadow-lg
-                active:scale-[0.97]
-              "
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </nav>
-        )}
-      </div>
-    </header>
+          {isLoggedIn && (
+            <nav className="flex items-center gap-4 md:gap-6">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="flex items-center px-5 py-3 font-semibold text-teal-900 transition-colors rounded-2xl hover:bg-gray-100"
+                >
+                  <item.icon className="w-5 h-5 mr-2" />
+                  {item.name}
+                </Link>
+              ))}
+
+              <div className="items-center hidden px-5 py-3 text-teal-900 bg-gray-100 border border-gray-200 sm:flex rounded-2xl">
+                Welcome <b className="ml-1">{displayName}</b>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-6 py-3 text-white transition-colors bg-teal-900 rounded-2xl hover:bg-teal-800"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
+            </nav>
+          )}
+        </div>
+      </header>
+
+      {/* 🔥 SPACER */}
+      <div style={{ height: HEADER_HEIGHT }} className="bg-gray-100" />
+    </>
   );
 };
 
